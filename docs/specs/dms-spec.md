@@ -32,7 +32,7 @@ Oferecer uma aplicação web simples para enviar, listar e baixar documentos arm
 | --- | --- | --- |
 | RF-01 | O sistema deve aceitar o envio de um documento. | A API recebe um único arquivo no campo multipart `file`; em sucesso, retorna os metadados criados e grava os bytes em `backend/storage`. |
 | RF-02 | O sistema deve rejeitar uma requisição de upload sem arquivo. | A API retorna `400` com erro estruturado e não cria metadados. |
-| RF-03 | O sistema deve rejeitar arquivos que excedam o limite configurado. | O limite é configurável; uma violação retorna `413` e não deixa metadados ou arquivo parcial acessível. O valor padrão do limite precisa ser decidido antes da implementação. |
+| RF-03 | O sistema deve rejeitar arquivos que excedam o limite configurado. | O limite é configurável, com padrão de 10 MiB (10485760 bytes); uma violação retorna `413` e não deixa metadados ou arquivo parcial acessível. |
 | RF-04 | O sistema deve atribuir um identificador único gerado pelo servidor a cada documento. | O ID não é derivado do nome enviado pelo cliente e identifica o metadado e o arquivo armazenado. |
 | RF-05 | O sistema deve listar os documentos conhecidos pelo processo atual. | A resposta contém metadados, nunca bytes do arquivo nem caminho físico; lista vazia retorna sucesso com coleção vazia. |
 | RF-06 | O sistema deve baixar um documento pelo ID. | Um documento existente retorna os bytes com `Content-Disposition: attachment` e nome original seguro; ID sem metadado ou arquivo correspondente retorna `404`. |
@@ -60,7 +60,7 @@ Oferecer uma aplicação web simples para enviar, listar e baixar documentos arm
 | --- | --- |
 | `PORT` | Porta HTTP do backend; o seed usa `3000` como padrão. |
 | `STORAGE_DIR` | Diretório local de gravação; padrão `backend/storage`. Caminhos relativos devem ser resolvidos de forma consistente a partir da raiz do backend. |
-| `MAX_FILE_SIZE_BYTES` | Limite máximo de bytes por arquivo. Deve ser positivo e finito; o valor padrão ainda precisa ser definido antes da implementação. |
+| `MAX_FILE_SIZE_BYTES` | Limite máximo de bytes por arquivo. Deve ser positivo e finito; o padrão é 10485760 bytes (10 MiB). |
 
 Configuração inválida deve ser reportada no startup, sem iniciar o servidor com limites acidentais ou armazenamento em destino externo.
 
@@ -185,7 +185,7 @@ O texto pode ser localizado, mas `code` e status devem ser estáveis. Nenhuma re
 
 As etapas abaixo descrevem trabalho futuro. A criação desta especificação não executa nem altera arquivos de implementação.
 
-1. **Preparar configuração e domínio:** definir o valor padrão do limite de upload; validar configuração de storage; definir geração de ID, entidade de metadados e formato de erros.
+1. **Preparar configuração e domínio:** validar configuração de storage; definir geração de ID, entidade de metadados e formato de erros.
 2. **Implementar backend:** criar as rotas, controllers, services e repositories para upload local com multer `diskStorage`, listagem em memória e download; preservar `/health` e tratar limpeza em falhas.
 3. **Cobrir API com testes:** testar sucesso, ausência de arquivo, limite excedido, lista vazia/preenchida, download, ID inexistente, falha de storage e ausência do arquivo local; usar diretório temporário nos testes.
 4. **Implementar frontend:** criar serviço `fetch`, formulário de upload, lista e ação de download; tratar carregamento, vazio, sucesso e erros conforme os contratos.
@@ -195,5 +195,5 @@ As etapas abaixo descrevem trabalho futuro. A criação desta especificação n�
 
 - Todos os requisitos funcionais e contratos desta especificação têm cobertura de teste apropriada.
 - Upload, listagem e download funcionam no fluxo local previsto, mantendo arquivos no filesystem e metadados em memória.
-- O limite de upload foi decidido e documentado antes da implementação.
+- O limite padrão de 10 MiB está documentado e pode ser sobrescrito por configuração.
 - Nenhuma funcionalidade fora do escopo foi introduzida implicitamente.
